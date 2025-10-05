@@ -26,6 +26,15 @@ class Marketplace {
         // Price volatility
         this.priceVolatility = 0.1; // 10% max price change
         this.priceUpdateCounter = 0;
+        
+        // Price history tracking (for graphs)
+        this.productPriceHistory = new Map();
+        // Initialize history with current prices
+        for (let [product, price] of this.productPrices.entries()) {
+            this.productPriceHistory.set(product, [
+                { update: 0, price: price }
+            ]);
+        }
     }
     
     // Buy materials
@@ -124,11 +133,23 @@ class Marketplace {
             this.materialPrices.set(material, newPrice);
         }
         
-        // Update product prices
+        // Update product prices and record history
         for (let [product, basePrice] of this.productPrices.entries()) {
             const variation = (Math.random() - 0.5) * 2 * this.priceVolatility;
             const newPrice = Math.max(1, Math.round(basePrice * (1 + variation)));
             this.productPrices.set(product, newPrice);
+            
+            // Record price history
+            if (!this.productPriceHistory.has(product)) {
+                this.productPriceHistory.set(product, []);
+            }
+            const history = this.productPriceHistory.get(product);
+            history.push({ update: this.priceUpdateCounter, price: newPrice });
+            
+            // Keep only last 50 price points to avoid memory issues
+            if (history.length > 50) {
+                history.shift();
+            }
         }
         
         this.game.log('Market prices updated!', 'info');
@@ -183,6 +204,11 @@ class Marketplace {
             .map(([name, price]) => ({ name, price }));
     }
     
+    // Get price history for a product
+    getProductPriceHistory(productName) {
+        return this.productPriceHistory.get(productName) || [];
+    }
+    
     // Transaction history (could be expanded)
     getMarketSummary() {
         return {
@@ -207,7 +233,8 @@ class Marketplace {
         return {
             materialPrices: Object.fromEntries(this.materialPrices),
             productPrices: Object.fromEntries(this.productPrices),
-            priceUpdateCounter: this.priceUpdateCounter
+            priceUpdateCounter: this.priceUpdateCounter,
+            productPriceHistory: Object.fromEntries(this.productPriceHistory)
         };
     }
     
@@ -233,5 +260,10 @@ class Marketplace {
         }
         
         this.priceUpdateCounter = data.priceUpdateCounter || 0;
+        
+        // Load price history
+        if (data.productPriceHistory) {
+            this.productPriceHistory = new Map(Object.entries(data.productPriceHistory));
+        }
     }
 }
