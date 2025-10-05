@@ -78,8 +78,18 @@ class FactoryGame {
             this.advanceDay();
         }
         
-        // Update UI
-        this.ui.updateDisplay();
+        // Update UI less frequently and only essential parts
+        this.ui.updateGameStats(); // Always update money and time
+        
+        // Avoid updating during user interactions (within 200ms of last interaction)
+        const timeSinceInteraction = Date.now() - this.ui.lastUserInteraction;
+        const canUpdate = timeSinceInteraction > 200;
+        
+        // Only update view content every 3 seconds, when something significant changes, or when forced
+        if (canUpdate && (this.gameTime % 3 === 0 || this.ui.needsFullUpdate)) {
+            this.ui.updateViewContent(this.ui.currentView);
+            this.ui.needsFullUpdate = false;
+        }
         
         this.gameTime++;
     }
@@ -88,7 +98,22 @@ class FactoryGame {
         const day = Math.floor(this.gameTime / 60) + 1;
         this.log(`Day ${day} begins...`);
         
-        // Record money for statistics
+        // Calculate and apply daily maintenance costs
+        const totalSlots = this.productionHall.getProductionStatus().capacity;
+        const maintenanceCostPerSlot = 5; // $5 per machine slot per day
+        const totalMaintenanceCost = totalSlots * maintenanceCostPerSlot;
+        
+        if (totalMaintenanceCost > 0) {
+            this.money -= totalMaintenanceCost;
+            this.log(`Daily maintenance cost: $${totalMaintenanceCost} (${totalSlots} slots × $${maintenanceCostPerSlot})`, 'warning');
+            
+            // Check if player went into debt
+            if (this.money < 0) {
+                this.log(`Warning: Negative balance! Current money: $${this.money}`, 'error');
+            }
+        }
+        
+        // Record money for statistics (after maintenance costs)
         this.moneyHistory.push({
             day: day,
             money: this.money
@@ -101,7 +126,6 @@ class FactoryGame {
         
         // Daily events could go here
         // - Random price fluctuations
-        // - Equipment maintenance costs
         // - New products unlocked
     }
     

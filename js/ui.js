@@ -4,6 +4,8 @@ class UI {
         this.game = game;
         this.currentView = 'warehouse';
         this.messageQueue = [];
+        this.needsFullUpdate = false;
+        this.lastUserInteraction = 0;
     }
     
     init() {
@@ -74,6 +76,20 @@ class UI {
     updateDisplay() {
         this.updateGameStats();
         this.updateViewContent(this.currentView);
+    }
+    
+    // Request a full UI update on next game loop cycle
+    requestUpdate() {
+        this.needsFullUpdate = true;
+    }
+    
+    // Mark user interaction to prevent updates during clicks
+    markUserInteraction() {
+        this.lastUserInteraction = Date.now();
+        // Schedule update after a short delay to allow interaction to complete
+        setTimeout(() => {
+            this.requestUpdate();
+        }, 100);
     }
     
     updateGameStats() {
@@ -359,7 +375,8 @@ class UI {
                 
                 <div style="margin: 1rem 0;">
                     <span class="message-success">Idle: ${status.machines.idle}</span> |
-                    <span class="message-warning">Working: ${status.machines.working}</span>
+                    <span class="message-warning">Working: ${status.machines.working}</span> |
+                    <span class="message-error">Daily Cost: $${status.capacity * 5}</span>
                 </div>
                 
                 <div style="margin: 1rem 0; padding: 0.75rem; background: ${status.machines.working > 0 ? '#fff3cd' : '#f8f9fa'}; border-radius: 4px; border-left: 4px solid ${status.machines.working > 0 ? '#ffc107' : '#dee2e6'}; min-height: ${50 + (status.capacity * 35)}px;">
@@ -443,7 +460,15 @@ class UI {
                                                 .find(r => r.name === machine.defaultRecipe);
                                             if (recipe) {
                                                 const materials = Array.from(recipe.inputs.entries())
-                                                    .map(([material, quantity]) => `${quantity}x ${material}`)
+                                                    .map(([material, quantity]) => {
+                                                        // Check both input materials and output products warehouses
+                                                        const availableInInput = this.game.warehouse.getInputMaterial(material);
+                                                        const availableInOutput = this.game.warehouse.getOutputProduct(material);
+                                                        const totalAvailable = availableInInput + availableInOutput;
+                                                        const hasEnough = totalAvailable >= quantity;
+                                                        const color = hasEnough ? '#28a745' : '#dc3545'; // green if enough, red if missing
+                                                        return `<span style="color: ${color};">${quantity}x ${material}</span>`;
+                                                    })
                                                     .join(', ');
                                                 return `✓ Will auto-start ${machine.defaultRecipe} when available: ${materials}`;
                                             } else {
@@ -592,14 +617,23 @@ class UI {
                     <h3>Production Hall Expansion</h3>
                     <p>Current Capacity: ${productionStatus.capacity} machines</p>
                     <p>Expansion Cost: $500 per slot</p>
+                    
+                    <div style="margin: 1rem 0; padding: 0.75rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+                        <h5 style="margin: 0 0 0.5rem 0; color: #856404;">💰 Daily Maintenance Costs</h5>
+                        <p style="margin: 0; font-size: 0.9rem;">
+                            Each machine slot costs <strong>$5 per day</strong> (whether used or unused)<br>
+                            Current daily cost: <strong>$${productionStatus.capacity * 5}</strong>
+                        </p>
+                    </div>
+                    
                     <button class="btn btn-warning" onclick="window.factoryGame.ui.expandProduction(1)">
-                        Add 1 machine slot ($500)
+                        Add 1 machine slot ($500) <br><small>+$5/day maintenance</small>
                     </button>
                     <button class="btn btn-warning" onclick="window.factoryGame.ui.expandProduction(3)">
-                        Add 3 machine slots ($1,500)
+                        Add 3 machine slots ($1,500) <br><small>+$15/day maintenance</small>
                     </button>
                     <button class="btn btn-warning" onclick="window.factoryGame.ui.expandProduction(5)">
-                        Add 5 machine slots ($2,500)
+                        Add 5 machine slots ($2,500) <br><small>+$25/day maintenance</small>
                     </button>
                 </div>
             </div>
@@ -985,38 +1019,47 @@ class UI {
     
     // UI Action Methods (called from HTML buttons)
     buyMaterial(materialName, quantity) {
+        this.markUserInteraction();
         this.game.marketplace.buyMaterial(materialName, quantity);
     }
     
     sellProduct(productName, quantity) {
+        this.markUserInteraction();
         this.game.marketplace.sellProduct(productName, quantity);
     }
     
     sellAllProducts(productName) {
+        this.markUserInteraction();
         this.game.marketplace.sellProductAll(productName);
     }
     
     buyMachine(machineType) {
+        this.markUserInteraction();
         this.game.productionHall.buyMachine(machineType);
     }
     
     sellMachine(machineId) {
+        this.markUserInteraction();
         this.game.productionHall.sellMachine(machineId);
     }
     
     startProduction(machineId, recipeName) {
+        this.markUserInteraction();
         this.game.productionHall.startProduction(machineId, recipeName);
     }
     
     setDefaultRecipe(machineId, recipeName) {
+        this.markUserInteraction();
         this.game.productionHall.setDefaultRecipe(machineId, recipeName);
     }
     
     toggleAutoStart(machineId) {
+        this.markUserInteraction();
         this.game.productionHall.toggleAutoStart(machineId);
     }
     
     transferProductToInput(productName, quantity) {
+        this.markUserInteraction();
         const result = this.game.warehouse.transferProductToInput(productName, quantity);
         if (result.success) {
             this.game.log(result.reason, 'success');
@@ -1026,6 +1069,7 @@ class UI {
     }
     
     transferAllProductToInput(productName) {
+        this.markUserInteraction();
         const result = this.game.warehouse.transferAllProductToInput(productName);
         if (result.success) {
             this.game.log(result.reason, 'success');
@@ -1061,6 +1105,7 @@ class UI {
     }
     
     resetGame() {
+        this.markUserInteraction();
         if (confirm('Are you sure you want to reset the game? All progress will be lost!')) {
             localStorage.removeItem('factorySimulatorSave');
             location.reload();
