@@ -37,6 +37,7 @@
             <button id="nav-machines" class="nav-btn" onclick="switchView('machines')">Buy Machines</button>
             <button id="nav-production" class="nav-btn" onclick="switchView('production')">Production Hall</button>
             <button id="nav-expansion" class="nav-btn" onclick="switchView('expansion')">Expansion</button>
+            <button id="nav-statistics" class="nav-btn" onclick="switchView('statistics')">Statistics</button>
         </nav>
 
         <main id="game-content">
@@ -72,6 +73,13 @@
                 <h2>Factory Expansion</h2>
                 <div id="expansion-content">
                     <!-- Expansion content will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="statistics-view" class="game-view">
+                <h2>Statistics</h2>
+                <div id="statistics-content">
+                    <!-- Statistics content will be populated by JavaScript -->
                 </div>
             </div>
         </main>
@@ -168,6 +176,7 @@
             document.getElementById('machines-content').innerHTML = '<p>Loading machine shop...</p>';
             document.getElementById('production-content').innerHTML = '<p>Loading production hall...</p>';
             document.getElementById('expansion-content').innerHTML = '<p>Loading expansion options...</p>';
+            document.getElementById('statistics-content').innerHTML = '<p>Loading statistics...</p>';
         });
     </script>
 
