@@ -103,6 +103,9 @@ class UI {
             case 'expansion':
                 this.updateExpansionView();
                 break;
+            case 'statistics':
+                this.updateStatisticsView();
+                break;
         }
     }
     
@@ -599,6 +602,144 @@ class UI {
         `;
         
         content.innerHTML = html;
+    }
+    
+    updateStatisticsView() {
+        const content = document.getElementById('statistics-content');
+        const moneyHistory = this.game.moneyHistory;
+        
+        // Generate graph HTML
+        const html = `
+            <div class="card">
+                <h3>Money Over Time</h3>
+                <div class="statistics-summary">
+                    <div class="stat-box">
+                        <div class="stat-label">Current Money</div>
+                        <div class="stat-value">$${this.game.getMoney()}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Starting Money</div>
+                        <div class="stat-value">$${moneyHistory[0].money}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Net Change</div>
+                        <div class="stat-value ${this.game.getMoney() - moneyHistory[0].money >= 0 ? 'positive' : 'negative'}">
+                            ${this.game.getMoney() - moneyHistory[0].money >= 0 ? '+' : ''}$${this.game.getMoney() - moneyHistory[0].money}
+                        </div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Days Tracked</div>
+                        <div class="stat-value">${moneyHistory.length}</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    ${this.generateMoneyChart(moneyHistory)}
+                </div>
+            </div>
+        `;
+        
+        content.innerHTML = html;
+    }
+    
+    generateMoneyChart(moneyHistory) {
+        if (moneyHistory.length === 0) {
+            return '<p>No data to display yet. Play for a day to see your money history!</p>';
+        }
+        
+        // Calculate chart dimensions and scaling
+        const maxMoney = Math.max(...moneyHistory.map(entry => entry.money));
+        const minMoney = Math.min(...moneyHistory.map(entry => entry.money));
+        const moneyRange = maxMoney - minMoney || 1000; // Avoid division by zero
+        const chartHeight = 300;
+        const chartWidth = 800;
+        const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+        const graphWidth = chartWidth - padding.left - padding.right;
+        const graphHeight = chartHeight - padding.top - padding.bottom;
+        
+        // Generate SVG path for the line
+        const points = moneyHistory.map((entry, index) => {
+            const x = padding.left + (index / (moneyHistory.length - 1 || 1)) * graphWidth;
+            const y = padding.top + graphHeight - ((entry.money - minMoney) / moneyRange) * graphHeight;
+            return { x, y, day: entry.day, money: entry.money };
+        });
+        
+        const pathData = points.map((point, index) => 
+            `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+        ).join(' ');
+        
+        // Generate grid lines
+        const gridLines = [];
+        const numGridLines = 5;
+        for (let i = 0; i <= numGridLines; i++) {
+            const y = padding.top + (i / numGridLines) * graphHeight;
+            const value = maxMoney - (i / numGridLines) * moneyRange;
+            gridLines.push(`
+                <line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" 
+                      stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                <text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="#666">
+                    $${Math.round(value)}
+                </text>
+            `);
+        }
+        
+        // Generate X-axis labels
+        const xLabels = points.map((point, index) => {
+            // Show label every few days to avoid crowding
+            if (index % Math.max(1, Math.floor(points.length / 10)) === 0 || index === points.length - 1) {
+                return `
+                    <text x="${point.x}" y="${chartHeight - padding.bottom + 20}" 
+                          text-anchor="middle" font-size="12" fill="#666">
+                        Day ${point.day}
+                    </text>
+                `;
+            }
+            return '';
+        }).join('');
+        
+        // Generate data points
+        const dataPoints = points.map(point => `
+            <circle cx="${point.x}" cy="${point.y}" r="4" fill="#3498db" stroke="white" stroke-width="2">
+                <title>Day ${point.day}: $${point.money}</title>
+            </circle>
+        `).join('');
+        
+        return `
+            <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: auto; max-width: ${chartWidth}px;">
+                <!-- Grid lines and Y-axis labels -->
+                ${gridLines.join('')}
+                
+                <!-- X-axis -->
+                <line x1="${padding.left}" y1="${chartHeight - padding.bottom}" 
+                      x2="${chartWidth - padding.right}" y2="${chartHeight - padding.bottom}" 
+                      stroke="#333" stroke-width="2"/>
+                
+                <!-- Y-axis -->
+                <line x1="${padding.left}" y1="${padding.top}" 
+                      x2="${padding.left}" y2="${chartHeight - padding.bottom}" 
+                      stroke="#333" stroke-width="2"/>
+                
+                <!-- X-axis labels -->
+                ${xLabels}
+                
+                <!-- Data line -->
+                <path d="${pathData}" fill="none" stroke="#3498db" stroke-width="2"/>
+                
+                <!-- Data points -->
+                ${dataPoints}
+                
+                <!-- Axis labels -->
+                <text x="${chartWidth / 2}" y="${chartHeight - 5}" text-anchor="middle" 
+                      font-size="14" font-weight="bold" fill="#333">
+                    Day
+                </text>
+                <text x="10" y="${chartHeight / 2}" text-anchor="middle" 
+                      font-size="14" font-weight="bold" fill="#333" 
+                      transform="rotate(-90, 10, ${chartHeight / 2})">
+                    Money ($)
+                </text>
+            </svg>
+        `;
     }
     
     // Helper methods for UI generation

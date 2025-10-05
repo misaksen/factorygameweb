@@ -5,6 +5,11 @@ class FactoryGame {
         this.gameTime = 1; // Day counter
         this.isRunning = false;
         
+        // Money history tracking for statistics
+        this.moneyHistory = [
+            { day: 1, money: 1000 }
+        ];
+        
         // Initialize game systems
         this.warehouse = new Warehouse();
         this.marketplace = new Marketplace(this);
@@ -83,6 +88,17 @@ class FactoryGame {
         const day = Math.floor(this.gameTime / 60) + 1;
         this.log(`Day ${day} begins...`);
         
+        // Record money for statistics
+        this.moneyHistory.push({
+            day: day,
+            money: this.money
+        });
+        
+        // Keep only last 30 days of history to avoid memory issues
+        if (this.moneyHistory.length > 30) {
+            this.moneyHistory.shift();
+        }
+        
         // Daily events could go here
         // - Random price fluctuations
         // - Equipment maintenance costs
@@ -120,6 +136,7 @@ class FactoryGame {
         const gameState = {
             money: this.money,
             gameTime: this.gameTime,
+            moneyHistory: this.moneyHistory,
             warehouse: this.warehouse.getSaveData(),
             productionHall: this.productionHall.getSaveData(),
             marketplace: this.marketplace.getSaveData()
@@ -141,6 +158,7 @@ class FactoryGame {
                 
                 this.money = gameState.money || 1000;
                 this.gameTime = gameState.gameTime || 1;
+                this.moneyHistory = gameState.moneyHistory || [{ day: 1, money: this.money }];
                 
                 if (gameState.warehouse) {
                     this.warehouse.loadSaveData(gameState.warehouse);
@@ -178,6 +196,7 @@ class FactoryGame {
         this.money = 1000;
         this.gameTime = 1;
         this.isRunning = false;
+        this.moneyHistory = [{ day: 1, money: 1000 }];
         
         // Reset all game systems
         this.warehouse = new Warehouse();
