@@ -293,10 +293,24 @@ class UI {
                                 .sort(([a], [b]) => a.localeCompare(b))
                                 .map(([name, price]) => {
                                 const available = this.game.warehouse.getOutputProduct(name);
+                                const priceHistory = this.game.marketplace.getProductPriceHistory(name);
+                                const priceChart = this.generatePriceChart(priceHistory, name, 250, 120);
+                                
                                 return `
                                     <tr>
                                         <td style="font-size: 0.9rem;">${name}</td>
-                                        <td style="font-weight: bold; color: #28a745;">$${price}</td>
+                                        <td style="font-weight: bold; color: #28a745; position: relative;">
+                                            <span class="price-with-chart" 
+                                                  onmouseenter="this.querySelector('.price-chart-tooltip').style.display='block'"
+                                                  onmouseleave="this.querySelector('.price-chart-tooltip').style.display='none'"
+                                                  style="cursor: help;">
+                                                $${price}
+                                                <div class="price-chart-tooltip" style="display: none;">
+                                                    <div style="font-weight: bold; margin-bottom: 0.5rem; font-size: 0.9rem;">${name}</div>
+                                                    ${priceChart}
+                                                </div>
+                                            </span>
+                                        </td>
                                         <td style="text-align: center; ${available === 0 ? 'color: #dc3545;' : 'color: #28a745; font-weight: bold;'}">${available}</td>
                                         <td>
                                             <button class="btn btn-success btn-sm" 
@@ -607,6 +621,31 @@ class UI {
     updateStatisticsView() {
         const content = document.getElementById('statistics-content');
         const moneyHistory = this.game.moneyHistory;
+        const productPrices = this.game.marketplace.getAllProductPrices();
+        
+        // Generate product price charts
+        const productPriceCharts = Array.from(productPrices.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([name, currentPrice]) => {
+                const priceHistory = this.game.marketplace.getProductPriceHistory(name);
+                return `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: #28a745;">${name}</h4>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                            <span style="font-size: 1.2rem; font-weight: bold;">Current: $${currentPrice}</span>
+                            ${priceHistory.length > 1 ? `
+                                <span style="font-size: 0.9rem; color: #666;">
+                                    Min: $${Math.min(...priceHistory.map(h => h.price))} | 
+                                    Max: $${Math.max(...priceHistory.map(h => h.price))}
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div class="chart-container" style="padding: 1rem;">
+                            ${this.generatePriceChart(priceHistory, name, 600, 200)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         
         // Generate graph HTML
         const html = `
@@ -636,6 +675,12 @@ class UI {
                 <div class="chart-container">
                     ${this.generateMoneyChart(moneyHistory)}
                 </div>
+            </div>
+            
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3>Product Price History</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Track how product sell prices have changed over time</p>
+                ${productPriceCharts}
             </div>
         `;
         
@@ -737,6 +782,82 @@ class UI {
                       font-size="14" font-weight="bold" fill="#333" 
                       transform="rotate(-90, 10, ${chartHeight / 2})">
                     Money ($)
+                </text>
+            </svg>
+        `;
+    }
+    
+    generatePriceChart(priceHistory, productName, chartWidth = 300, chartHeight = 150) {
+        if (!priceHistory || priceHistory.length === 0) {
+            return '<p style="font-size: 0.8rem; margin: 0;">No price data available yet.</p>';
+        }
+        
+        // Calculate chart dimensions and scaling
+        const maxPrice = Math.max(...priceHistory.map(entry => entry.price));
+        const minPrice = Math.min(...priceHistory.map(entry => entry.price));
+        const priceRange = maxPrice - minPrice || 10; // Avoid division by zero
+        const padding = { top: 10, right: 10, bottom: 25, left: 40 };
+        const graphWidth = chartWidth - padding.left - padding.right;
+        const graphHeight = chartHeight - padding.top - padding.bottom;
+        
+        // Generate SVG path for the line
+        const points = priceHistory.map((entry, index) => {
+            const x = padding.left + (index / (priceHistory.length - 1 || 1)) * graphWidth;
+            const y = padding.top + graphHeight - ((entry.price - minPrice) / priceRange) * graphHeight;
+            return { x, y, update: entry.update, price: entry.price };
+        });
+        
+        const pathData = points.map((point, index) => 
+            `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+        ).join(' ');
+        
+        // Generate grid lines
+        const gridLines = [];
+        const numGridLines = 3;
+        for (let i = 0; i <= numGridLines; i++) {
+            const y = padding.top + (i / numGridLines) * graphHeight;
+            const value = maxPrice - (i / numGridLines) * priceRange;
+            gridLines.push(`
+                <line x1="${padding.left}" y1="${y}" x2="${chartWidth - padding.right}" y2="${y}" 
+                      stroke="#e0e0e0" stroke-width="1" stroke-dasharray="3,3"/>
+                <text x="${padding.left - 5}" y="${y + 4}" text-anchor="end" font-size="10" fill="#666">
+                    $${Math.round(value)}
+                </text>
+            `);
+        }
+        
+        // Generate data points
+        const dataPoints = points.map(point => `
+            <circle cx="${point.x}" cy="${point.y}" r="2" fill="#28a745" stroke="white" stroke-width="1">
+                <title>Update ${point.update}: $${point.price}</title>
+            </circle>
+        `).join('');
+        
+        return `
+            <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: auto;">
+                <!-- Grid lines and Y-axis labels -->
+                ${gridLines.join('')}
+                
+                <!-- X-axis -->
+                <line x1="${padding.left}" y1="${chartHeight - padding.bottom}" 
+                      x2="${chartWidth - padding.right}" y2="${chartHeight - padding.bottom}" 
+                      stroke="#333" stroke-width="1"/>
+                
+                <!-- Y-axis -->
+                <line x1="${padding.left}" y1="${padding.top}" 
+                      x2="${padding.left}" y2="${chartHeight - padding.bottom}" 
+                      stroke="#333" stroke-width="1"/>
+                
+                <!-- Data line -->
+                <path d="${pathData}" fill="none" stroke="#28a745" stroke-width="2"/>
+                
+                <!-- Data points -->
+                ${dataPoints}
+                
+                <!-- Chart title -->
+                <text x="${chartWidth / 2}" y="${chartHeight - 5}" text-anchor="middle" 
+                      font-size="10" fill="#666">
+                    Price History
                 </text>
             </svg>
         `;
