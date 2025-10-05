@@ -11,6 +11,9 @@
         <header>
             <h1>Factory Simulator</h1>
             <div id="game-controls">
+                <button id="theme-toggle-btn" class="btn" onclick="toggleTheme()" title="Toggle light/dark mode">
+                    🌙
+                </button>
                 <button id="pause-resume-btn" class="btn btn-warning" onclick="toggleGamePause()">
                     <span id="pause-icon">⏸️</span> Pause
                 </button>
@@ -93,6 +96,37 @@
 
     <!-- Fallback navigation script -->
     <script>
+        // Theme toggle function
+        function toggleTheme() {
+            const body = document.body;
+            const themeButton = document.getElementById('theme-toggle-btn');
+            const isDarkMode = body.classList.toggle('dark-mode');
+            
+            // Update button icon
+            themeButton.textContent = isDarkMode ? '☀️' : '🌙';
+            
+            // Save preference to localStorage
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            
+            console.log('Theme switched to:', isDarkMode ? 'dark' : 'light');
+        }
+        
+        // Load theme preference on page load
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeButton = document.getElementById('theme-toggle-btn');
+            
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (themeButton) {
+                    themeButton.textContent = '☀️';
+                }
+            }
+        }
+        
+        // Load theme immediately
+        loadTheme();
+        
         // Global pause/resume function
         function toggleGamePause() {
             if (window.factoryGame) {
