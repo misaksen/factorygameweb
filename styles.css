@@ -1,0 +1,393 @@
+/* Factory Simulator Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --background-color: #ecf0f1;
+    --text-color: #2c3e50;
+    --border-color: #bdc3c7;
+    --card-background: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+#game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    font-weight: 300;
+    flex: 1;
+}
+
+#game-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#pause-resume-btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+#pause-resume-btn:hover {
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-1px);
+}
+
+#game-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+#money, #game-time {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Navigation Styles */
+#main-nav {
+    background-color: var(--card-background);
+    border-bottom: 2px solid var(--border-color);
+    padding: 0;
+    display: flex;
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background-color: var(--background-color);
+}
+
+.nav-btn.active {
+    background-color: var(--secondary-color);
+    color: white;
+    border-bottom-color: var(--primary-color);
+}
+
+/* Main Content Styles */
+main {
+    flex: 1;
+    padding: 2rem;
+}
+
+.game-view {
+    display: none;
+}
+
+.game-view.active {
+    display: block;
+}
+
+.game-view h2 {
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 0.5rem;
+}
+
+/* Card Styles */
+.card {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin: 0.25rem;
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #229954;
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #e67e22;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Table Styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.data-table tr:hover {
+    background-color: var(--background-color);
+}
+
+/* Compact Table Styles */
+.compact-table th,
+.compact-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+.compact-table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.compact-table .btn-sm {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.4rem !important;
+    margin: 0.05rem !important;
+    min-width: 2rem;
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--success-color);
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+.progress-fill.warning {
+    background-color: var(--warning-color);
+}
+
+.progress-fill.danger {
+    background-color: var(--danger-color);
+}
+
+/* Grid Layout */
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* Input Styles */
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Footer/Messages */
+footer {
+    background-color: var(--card-background);
+    border-top: 1px solid var(--border-color);
+    padding: 1rem;
+}
+
+.message-area {
+    min-height: 60px;
+    max-height: 120px;
+    overflow-y: auto;
+    background-color: var(--background-color);
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.message-area p {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.message-success {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.message-warning {
+    color: var(--warning-color);
+    font-weight: 500;
+}
+
+.message-error {
+    color: var(--danger-color);
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    #game-stats {
+        justify-content: center;
+    }
+    
+    #game-controls {
+        order: -1; /* Show pause button before title on mobile */
+    }
+    
+    #pause-resume-btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    main {
+        padding: 1rem;
+    }
+
+    .nav-btn {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+}

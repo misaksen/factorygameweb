@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1>Factory Simulator</h1>
+            <div id="game-controls">
+                <button id="pause-resume-btn" class="btn btn-warning" onclick="toggleGamePause()">
+                    <span id="pause-icon">⏸️</span> Pause
+                </button>
+                <button id="reset-btn" class="btn btn-danger" onclick="resetGame()" 
+                        title="Reset game progress and start over">
+                    🔄 Reset Game
+                </button>
+            </div>
+            <div id="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Money:</span>
+                    <span id="money">$1000</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Time:</span>
+                    <span id="game-time">Day 1</span>
+                </div>
+            </div>
+        </header>
+
+        <nav id="main-nav">
+            <button id="nav-warehouse" class="nav-btn active" onclick="switchView('warehouse')">Warehouse Status</button>
+            <button id="nav-marketplace" class="nav-btn" onclick="switchView('marketplace')">Marketplace</button>
+            <button id="nav-machines" class="nav-btn" onclick="switchView('machines')">Buy Machines</button>
+            <button id="nav-production" class="nav-btn" onclick="switchView('production')">Production Hall</button>
+            <button id="nav-expansion" class="nav-btn" onclick="switchView('expansion')">Expansion</button>
+        </nav>
+
+        <main id="game-content">
+            <div id="warehouse-view" class="game-view active">
+                <h2>Warehouse Status</h2>
+                <div id="warehouse-content">
+                    <!-- Warehouse content will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="marketplace-view" class="game-view">
+                <h2>Marketplace</h2>
+                <div id="marketplace-content">
+                    <!-- Marketplace content will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="machines-view" class="game-view">
+                <h2>Buy Machines</h2>
+                <div id="machines-content">
+                    <!-- Machines content will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="production-view" class="game-view">
+                <h2>Production Hall</h2>
+                <div id="production-content">
+                    <!-- Production content will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="expansion-view" class="game-view">
+                <h2>Factory Expansion</h2>
+                <div id="expansion-content">
+                    <!-- Expansion content will be populated by JavaScript -->
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div id="messages" class="message-area">
+                <p>Welcome to Factory Simulator! Start by buying materials at the marketplace.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Fallback navigation script -->
+    <script>
+        // Global pause/resume function
+        function toggleGamePause() {
+            if (window.factoryGame) {
+                const isPaused = !window.factoryGame.isRunning;
+                if (isPaused) {
+                    window.factoryGame.startGameLoop();
+                    updatePauseButton(false);
+                } else {
+                    window.factoryGame.stopGameLoop();
+                    updatePauseButton(true);
+                }
+            }
+        }
+        
+        // Global reset function
+        function resetGame() {
+            if (confirm('Are you sure you want to reset the game? All progress will be lost!')) {
+                if (window.factoryGame) {
+                    window.factoryGame.resetGame();
+                } else {
+                    // If game isn't loaded yet, clear localStorage and reload
+                    localStorage.removeItem('factoryGameSave');
+                    location.reload();
+                }
+            }
+        }
+        
+        function updatePauseButton(isPaused) {
+            const button = document.getElementById('pause-resume-btn');
+            const header = document.querySelector('header');
+            
+            if (isPaused) {
+                button.innerHTML = '<span id="pause-icon">▶️</span> Resume';
+                button.className = 'btn btn-success';
+                header.style.background = 'linear-gradient(45deg, var(--primary-color), var(--danger-color))';
+                header.title = 'Game is paused';
+            } else {
+                button.innerHTML = '<span id="pause-icon">⏸️</span> Pause';
+                button.className = 'btn btn-warning';
+                header.style.background = 'var(--primary-color)';
+                header.title = '';
+            }
+        }
+
+        // Global navigation function that works immediately
+        function switchView(viewName) {
+            console.log('Switching to view:', viewName);
+            
+            // Hide all views
+            document.querySelectorAll('.game-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected view
+            const targetView = document.getElementById(viewName + '-view');
+            const targetNavBtn = document.getElementById('nav-' + viewName);
+            
+            if (targetView && targetNavBtn) {
+                targetView.classList.add('active');
+                targetNavBtn.classList.add('active');
+                
+                // Update content if game is loaded
+                if (window.factoryGame && window.factoryGame.ui) {
+                    window.factoryGame.ui.updateViewContent(viewName);
+                }
+            }
+        }
+        
+        // Initialize basic content on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up basic navigation...');
+            
+            // Add some basic content to views if game hasn't loaded yet
+            document.getElementById('warehouse-content').innerHTML = '<p>Loading warehouse data...</p>';
+            document.getElementById('marketplace-content').innerHTML = '<p>Loading marketplace...</p>';
+            document.getElementById('machines-content').innerHTML = '<p>Loading machine shop...</p>';
+            document.getElementById('production-content').innerHTML = '<p>Loading production hall...</p>';
+            document.getElementById('expansion-content').innerHTML = '<p>Loading expansion options...</p>';
+        });
+    </script>
+
+    <!-- Load JavaScript files -->
+    <script src="js/warehouse.js"></script>
+    <script src="js/marketplace.js"></script>
+    <script src="js/production.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
