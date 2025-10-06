@@ -3,11 +3,17 @@ class Marketplace {
     constructor(game) {
         this.game = game;
         
-        // Material prices (buy prices)
-        this.materialPrices = new Map(Object.entries(GameConfig.marketplace.materialPrices));
+        // Build material prices map from config
+        this.materialPrices = new Map();
+        GameConfig.materials.forEach(material => {
+            this.materialPrices.set(material.name, material.price);
+        });
         
-        // Product prices (sell prices)
-        this.productPrices = new Map(Object.entries(GameConfig.marketplace.productPrices));
+        // Build product prices map from config
+        this.productPrices = new Map();
+        GameConfig.products.forEach(product => {
+            this.productPrices.set(product.name, product.price);
+        });
         
         // Price volatility
         this.priceVolatility = GameConfig.marketplace.priceVolatility;

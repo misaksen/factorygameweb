@@ -23,54 +23,34 @@ const GameConfig = {
         historyDays: 30 // days of money history to keep
     },
     
+    // Materials configuration - combines items with their prices
+    materials: [
+        { id: 1, name: 'Iron Ore', price: 5 },
+        { id: 2, name: 'Wood', price: 3 },
+        { id: 3, name: 'Coal', price: 4 },
+        { id: 4, name: 'Copper Ore', price: 7 },
+        { id: 5, name: 'Stone', price: 2 }
+    ],
+    
+    // Products configuration - combines items with their prices
+    products: [
+        { id: 101, name: 'Iron Ingot', price: 15 },
+        { id: 102, name: 'Wooden Plank', price: 8 },
+        { id: 103, name: 'Copper Wire', price: 20 },
+        { id: 104, name: 'Steel Bar', price: 25 },
+        { id: 105, name: 'Concrete Block', price: 12 },
+        { id: 106, name: 'Electronic Component', price: 75 },
+        { id: 107, name: 'Reinforced Concrete', price: 45 }
+    ],
+    
     // Warehouse configuration
     warehouse: {
         initialInputCapacity: 100,
-        initialOutputCapacity: 50,
-        
-        // Basic materials that can be bought
-        basicMaterials: [
-            'Iron Ore',
-            'Wood',
-            'Coal',
-            'Copper Ore',
-            'Stone'
-        ],
-        
-        // Products that can be manufactured
-        basicProducts: [
-            'Iron Ingot',
-            'Wooden Plank',
-            'Copper Wire',
-            'Steel Bar',
-            'Concrete Block',
-            'Electronic Component',
-            'Reinforced Concrete'
-        ]
+        initialOutputCapacity: 50
     },
     
     // Marketplace configuration
     marketplace: {
-        // Material prices (buy prices)
-        materialPrices: {
-            'Iron Ore': 5,
-            'Wood': 3,
-            'Coal': 4,
-            'Copper Ore': 7,
-            'Stone': 2
-        },
-        
-        // Product prices (sell prices)
-        productPrices: {
-            'Iron Ingot': 15,
-            'Wooden Plank': 8,
-            'Copper Wire': 20,
-            'Steel Bar': 25,
-            'Concrete Block': 12,
-            'Electronic Component': 75,
-            'Reinforced Concrete': 45
-        },
-        
         // Price volatility
         priceVolatility: 0.1, // 10% max price change
         maxPriceHistory: 50 // Maximum price history points to keep

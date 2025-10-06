@@ -14,19 +14,17 @@ class Warehouse {
     }
     
     initializeItems() {
-        // Basic materials that can be bought
-        const basicMaterials = GameConfig.warehouse.basicMaterials;
-        
-        // Products that can be manufactured
-        const basicProducts = GameConfig.warehouse.basicProducts;
+        // Get materials and products from config
+        const materials = GameConfig.materials;
+        const products = GameConfig.products;
         
         // Initialize storage with zero quantities
-        basicMaterials.forEach(material => {
-            this.inputMaterials.set(material, 0);
+        materials.forEach(material => {
+            this.inputMaterials.set(material.name, 0);
         });
         
-        basicProducts.forEach(product => {
-            this.outputProducts.set(product, 0);
+        products.forEach(product => {
+            this.outputProducts.set(product.name, 0);
         });
     }
     
