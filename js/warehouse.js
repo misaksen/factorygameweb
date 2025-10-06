@@ -2,8 +2,8 @@
 class Warehouse {
     constructor() {
         // Storage capacities
-        this.inputCapacity = 100;
-        this.outputCapacity = 50;
+        this.inputCapacity = GameConfig.warehouse.initialInputCapacity;
+        this.outputCapacity = GameConfig.warehouse.initialOutputCapacity;
         
         // Current storage
         this.inputMaterials = new Map();
@@ -14,33 +14,17 @@ class Warehouse {
     }
     
     initializeItems() {
-        // Basic materials that can be bought
-        const basicMaterials = [
-            'Iron Ore',
-            'Wood',
-            'Coal',
-            'Copper Ore',
-            'Stone'
-        ];
-        
-        // Products that can be manufactured
-        const basicProducts = [
-            'Iron Ingot',
-            'Wooden Plank',
-            'Copper Wire',
-            'Steel Bar',
-            'Concrete Block',
-            'Electronic Component',
-            'Reinforced Concrete'
-        ];
+        // Get materials and products from config
+        const materials = GameConfig.materials;
+        const products = GameConfig.products;
         
         // Initialize storage with zero quantities
-        basicMaterials.forEach(material => {
-            this.inputMaterials.set(material, 0);
+        materials.forEach(material => {
+            this.inputMaterials.set(material.name, 0);
         });
         
-        basicProducts.forEach(product => {
-            this.outputProducts.set(product, 0);
+        products.forEach(product => {
+            this.outputProducts.set(product.name, 0);
         });
     }
     
@@ -302,8 +286,8 @@ class Warehouse {
     }
     
     loadSaveData(data) {
-        this.inputCapacity = data.inputCapacity || 100;
-        this.outputCapacity = data.outputCapacity || 50;
+        this.inputCapacity = data.inputCapacity || GameConfig.warehouse.initialInputCapacity;
+        this.outputCapacity = data.outputCapacity || GameConfig.warehouse.initialOutputCapacity;
         
         if (data.inputMaterials) {
             this.inputMaterials = new Map(Object.entries(data.inputMaterials));

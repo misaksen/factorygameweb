@@ -1,13 +1,13 @@
 // Factory Simulator - Main Game Controller
 class FactoryGame {
     constructor() {
-        this.money = 1000;
-        this.gameTime = 1; // Day counter
+        this.money = GameConfig.starting.money;
+        this.gameTime = GameConfig.starting.gameTime; // Day counter
         this.isRunning = false;
         
         // Money history tracking for statistics
         this.moneyHistory = [
-            { day: 1, money: 1000 }
+            { day: GameConfig.starting.day, money: GameConfig.starting.money }
         ];
         
         // Initialize game systems
@@ -47,7 +47,7 @@ class FactoryGame {
         this.isRunning = true;
         this.gameLoopInterval = setInterval(() => {
             this.gameLoop();
-        }, 1000); // Update every second
+        }, GameConfig.timing.gameLoopInterval);
         
         this.log('Game started!');
     }
@@ -68,25 +68,25 @@ class FactoryGame {
         // Update production
         this.productionHall.update();
         
-        // Update marketplace prices (every 30 seconds)
-        if (this.gameTime % 30 === 0) {
+        // Update marketplace prices
+        if (this.gameTime % GameConfig.timing.priceUpdateFrequency === 0) {
             this.marketplace.updatePrices();
         }
         
-        // Advance time every 60 seconds (1 minute = 1 game day)
-        if (this.gameTime % 60 === 0) {
+        // Advance time
+        if (this.gameTime % GameConfig.timing.dayLength === 0) {
             this.advanceDay();
         }
         
         // Update UI less frequently and only essential parts
         this.ui.updateGameStats(); // Always update money and time
         
-        // Avoid updating during user interactions (within 200ms of last interaction)
+        // Avoid updating during user interactions
         const timeSinceInteraction = Date.now() - this.ui.lastUserInteraction;
-        const canUpdate = timeSinceInteraction > 200;
+        const canUpdate = timeSinceInteraction > GameConfig.ui.updateThrottle;
         
-        // Only update view content every 3 seconds, when something significant changes, or when forced
-        if (canUpdate && (this.gameTime % 3 === 0 || this.ui.needsFullUpdate)) {
+        // Only update view content at regular intervals, when something significant changes, or when forced
+        if (canUpdate && (this.gameTime % GameConfig.ui.fullUpdateInterval === 0 || this.ui.needsFullUpdate)) {
             this.ui.updateViewContent(this.ui.currentView);
             this.ui.needsFullUpdate = false;
         }
@@ -95,17 +95,16 @@ class FactoryGame {
     }
     
     advanceDay() {
-        const day = Math.floor(this.gameTime / 60) + 1;
+        const day = Math.floor(this.gameTime / GameConfig.timing.dayLength) + 1;
         this.log(`Day ${day} begins...`);
         
         // Calculate and apply daily maintenance costs
         const totalSlots = this.productionHall.getProductionStatus().capacity;
-        const maintenanceCostPerSlot = 5; // $5 per machine slot per day
-        const totalMaintenanceCost = totalSlots * maintenanceCostPerSlot;
+        const totalMaintenanceCost = totalSlots * GameConfig.maintenance.costPerSlot;
         
         if (totalMaintenanceCost > 0) {
             this.money -= totalMaintenanceCost;
-            this.log(`Daily maintenance cost: $${totalMaintenanceCost} (${totalSlots} slots × $${maintenanceCostPerSlot})`, 'warning');
+            this.log(`Daily maintenance cost: $${totalMaintenanceCost} (${totalSlots} slots × $${GameConfig.maintenance.costPerSlot})`, 'warning');
             
             // Check if player went into debt
             if (this.money < 0) {
@@ -119,8 +118,8 @@ class FactoryGame {
             money: this.money
         });
         
-        // Keep only last 30 days of history to avoid memory issues
-        if (this.moneyHistory.length > 30) {
+        // Keep only last N days of history to avoid memory issues
+        if (this.moneyHistory.length > GameConfig.maintenance.historyDays) {
             this.moneyHistory.shift();
         }
         
@@ -180,9 +179,9 @@ class FactoryGame {
             if (savedData) {
                 const gameState = JSON.parse(savedData);
                 
-                this.money = gameState.money || 1000;
-                this.gameTime = gameState.gameTime || 1;
-                this.moneyHistory = gameState.moneyHistory || [{ day: 1, money: this.money }];
+                this.money = gameState.money || GameConfig.starting.money;
+                this.gameTime = gameState.gameTime || GameConfig.starting.gameTime;
+                this.moneyHistory = gameState.moneyHistory || [{ day: GameConfig.starting.day, money: this.money }];
                 
                 if (gameState.warehouse) {
                     this.warehouse.loadSaveData(gameState.warehouse);
@@ -217,10 +216,10 @@ class FactoryGame {
         localStorage.removeItem('factorySimulatorSave');
         
         // Reset game state to initial values
-        this.money = 1000;
-        this.gameTime = 1;
+        this.money = GameConfig.starting.money;
+        this.gameTime = GameConfig.starting.gameTime;
         this.isRunning = false;
-        this.moneyHistory = [{ day: 1, money: 1000 }];
+        this.moneyHistory = [{ day: GameConfig.starting.day, money: GameConfig.starting.money }];
         
         // Reset all game systems
         this.warehouse = new Warehouse();
@@ -241,15 +240,15 @@ class FactoryGame {
     }
     
     setupAutoSave() {
-        // Auto-save every 30 seconds
+        // Auto-save at configured interval
         this.autoSaveInterval = setInterval(() => {
             this.saveGame();
-        }, 30000);
+        }, GameConfig.timing.autoSaveInterval);
     }
     
     // Game state getters
     getCurrentDay() {
-        return Math.floor(this.gameTime / 60) + 1;
+        return Math.floor(this.gameTime / GameConfig.timing.dayLength) + 1;
     }
     
     getGameTime() {
