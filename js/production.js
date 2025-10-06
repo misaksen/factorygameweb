@@ -4,81 +4,23 @@ class ProductionHall {
         this.game = game;
         
         // Production hall capacity
-        this.maxMachines = 5;
+        this.maxMachines = GameConfig.production.initialMaxMachines;
         this.machines = [];
         
-        // Machine types and their recipes
-        this.machineTypes = new Map([
-            ['Smelter', {
-                cost: 200,
-                recipes: [
-                    {
-                        name: 'Iron Ingot',
-                        inputs: new Map([['Iron Ore', 2], ['Coal', 1]]),
-                        output: 'Iron Ingot',
-                        quantity: 1,
-                        time: 20 // seconds
-                    },
-                    {
-                        name: 'Steel Bar',
-                        inputs: new Map([['Iron Ingot', 2], ['Coal', 2]]),
-                        output: 'Steel Bar',
-                        quantity: 1,
-                        time: 40
-                    }
-                ]
-            }],
-            ['Workbench', {
-                cost: 150,
-                recipes: [
-                    {
-                        name: 'Wooden Plank',
-                        inputs: new Map([['Wood', 1]]),
-                        output: 'Wooden Plank',
-                        quantity: 2,
-                        time: 10
-                    },
-                    {
-                        name: 'Concrete Block',
-                        inputs: new Map([['Stone', 3], ['Wood', 1]]),
-                        output: 'Concrete Block',
-                        quantity: 1,
-                        time: 30
-                    }
-                ]
-            }],
-            ['Wire Mill', {
-                cost: 300,
-                recipes: [
-                    {
-                        name: 'Copper Wire',
-                        inputs: new Map([['Copper Ore', 1]]),
-                        output: 'Copper Wire',
-                        quantity: 3,
-                        time: 16
-                    }
-                ]
-            }],
-            ['Assembly Line', {
-                cost: 500,
-                recipes: [
-                    {
-                        name: 'Electronic Component',
-                        inputs: new Map([['Copper Wire', 2], ['Steel Bar', 1]]),
-                        output: 'Electronic Component',
-                        quantity: 1,
-                        time: 50
-                    },
-                    {
-                        name: 'Reinforced Concrete',
-                        inputs: new Map([['Concrete Block', 2], ['Steel Bar', 1]]),
-                        output: 'Reinforced Concrete',
-                        quantity: 1,
-                        time: 60
-                    }
-                ]
-            }]
-        ]);
+        // Machine types and their recipes - convert config format to Maps
+        this.machineTypes = new Map();
+        for (const [machineType, config] of Object.entries(GameConfig.production.machineTypes)) {
+            this.machineTypes.set(machineType, {
+                cost: config.cost,
+                recipes: config.recipes.map(recipe => ({
+                    name: recipe.name,
+                    inputs: new Map(Object.entries(recipe.inputs)),
+                    output: recipe.output,
+                    quantity: recipe.quantity,
+                    time: recipe.time
+                }))
+            });
+        }
         
         this.nextMachineId = 1;
     }
@@ -127,7 +69,7 @@ class ProductionHall {
         
         const machine = this.machines[machineIndex];
         const machineInfo = this.machineTypes.get(machine.type);
-        const sellPrice = Math.floor(machineInfo.cost * 0.7); // 70% of original cost
+        const sellPrice = Math.floor(machineInfo.cost * GameConfig.production.machineSellbackRate);
         
         this.machines.splice(machineIndex, 1);
         this.game.earnMoney(sellPrice);
@@ -306,8 +248,7 @@ class ProductionHall {
     
     // Capacity management
     expandCapacity(additionalSlots) {
-        const costPerSlot = 500;
-        const totalCost = additionalSlots * costPerSlot;
+        const totalCost = additionalSlots * GameConfig.production.expansionCostPerSlot;
         
         if (!this.game.spendMoney(totalCost)) {
             this.game.log(`Not enough money to expand capacity! Cost: $${totalCost}`, 'error');
@@ -404,7 +345,7 @@ class ProductionHall {
     }
     
     loadSaveData(data) {
-        this.maxMachines = data.maxMachines || 5;
+        this.maxMachines = data.maxMachines || GameConfig.production.initialMaxMachines;
         this.nextMachineId = data.nextMachineId || 1;
         
         if (data.machines) {

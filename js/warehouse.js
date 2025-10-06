@@ -2,8 +2,8 @@
 class Warehouse {
     constructor() {
         // Storage capacities
-        this.inputCapacity = 100;
-        this.outputCapacity = 50;
+        this.inputCapacity = GameConfig.warehouse.initialInputCapacity;
+        this.outputCapacity = GameConfig.warehouse.initialOutputCapacity;
         
         // Current storage
         this.inputMaterials = new Map();
@@ -15,24 +15,10 @@ class Warehouse {
     
     initializeItems() {
         // Basic materials that can be bought
-        const basicMaterials = [
-            'Iron Ore',
-            'Wood',
-            'Coal',
-            'Copper Ore',
-            'Stone'
-        ];
+        const basicMaterials = GameConfig.warehouse.basicMaterials;
         
         // Products that can be manufactured
-        const basicProducts = [
-            'Iron Ingot',
-            'Wooden Plank',
-            'Copper Wire',
-            'Steel Bar',
-            'Concrete Block',
-            'Electronic Component',
-            'Reinforced Concrete'
-        ];
+        const basicProducts = GameConfig.warehouse.basicProducts;
         
         // Initialize storage with zero quantities
         basicMaterials.forEach(material => {
@@ -302,8 +288,8 @@ class Warehouse {
     }
     
     loadSaveData(data) {
-        this.inputCapacity = data.inputCapacity || 100;
-        this.outputCapacity = data.outputCapacity || 50;
+        this.inputCapacity = data.inputCapacity || GameConfig.warehouse.initialInputCapacity;
+        this.outputCapacity = data.outputCapacity || GameConfig.warehouse.initialOutputCapacity;
         
         if (data.inputMaterials) {
             this.inputMaterials = new Map(Object.entries(data.inputMaterials));

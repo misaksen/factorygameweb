@@ -4,27 +4,13 @@ class Marketplace {
         this.game = game;
         
         // Material prices (buy prices)
-        this.materialPrices = new Map([
-            ['Iron Ore', 5],
-            ['Wood', 3],
-            ['Coal', 4],
-            ['Copper Ore', 7],
-            ['Stone', 2]
-        ]);
+        this.materialPrices = new Map(Object.entries(GameConfig.marketplace.materialPrices));
         
         // Product prices (sell prices)
-        this.productPrices = new Map([
-            ['Iron Ingot', 15],
-            ['Wooden Plank', 8],
-            ['Copper Wire', 20],
-            ['Steel Bar', 25],
-            ['Concrete Block', 12],
-            ['Electronic Component', 75],
-            ['Reinforced Concrete', 45]
-        ]);
+        this.productPrices = new Map(Object.entries(GameConfig.marketplace.productPrices));
         
         // Price volatility
-        this.priceVolatility = 0.1; // 10% max price change
+        this.priceVolatility = GameConfig.marketplace.priceVolatility;
         this.priceUpdateCounter = 0;
         
         // Price history tracking (for graphs)
@@ -146,8 +132,8 @@ class Marketplace {
             const history = this.productPriceHistory.get(product);
             history.push({ update: this.priceUpdateCounter, price: newPrice });
             
-            // Keep only last 50 price points to avoid memory issues
-            if (history.length > 50) {
+            // Keep only last N price points to avoid memory issues
+            if (history.length > GameConfig.marketplace.maxPriceHistory) {
                 history.shift();
             }
         }
