@@ -268,6 +268,32 @@ class FactoryGame {
         
         this.log('Game session ended.');
     }
+    
+    // Helper functions for ID/name conversion
+    getMaterialName(id) {
+        const material = GameConfig.materials.find(m => m.id === id);
+        return material ? material.name : null;
+    }
+    
+    getProductName(id) {
+        const product = GameConfig.products.find(p => p.id === id);
+        return product ? product.name : null;
+    }
+    
+    // Get name for any item (material or product)
+    getItemName(id) {
+        return this.getMaterialName(id) || this.getProductName(id) || `Unknown_${id}`;
+    }
+    
+    getMaterialId(name) {
+        const material = GameConfig.materials.find(m => m.name === name);
+        return material ? material.id : null;
+    }
+    
+    getProductId(name) {
+        const product = GameConfig.products.find(p => p.name === name);
+        return product ? product.id : null;
+    }
 }
 
 // Initialize game when page loads

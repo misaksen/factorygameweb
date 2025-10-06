@@ -9,17 +9,29 @@ class ProductionHall {
         
         // Machine types and their recipes - convert config format to Maps
         this.machineTypes = new Map();
-        for (const [machineType, config] of Object.entries(GameConfig.production.machineTypes)) {
-            this.machineTypes.set(machineType, {
-                cost: config.cost,
-                recipes: config.recipes.map(recipe => ({
+        this.machineTypesByName = new Map(); // For backward compatibility
+        
+        for (const machineTypeConfig of GameConfig.production.machineTypes) {
+            const machineData = {
+                id: machineTypeConfig.id,
+                name: machineTypeConfig.name,
+                cost: machineTypeConfig.cost,
+                recipes: machineTypeConfig.recipes.map(recipe => ({
                     name: recipe.name,
-                    inputs: new Map(Object.entries(recipe.inputs)),
-                    output: recipe.output,
+                    inputs: new Map(Object.entries(recipe.inputs).map(([id, quantity]) => [
+                        this.game.getItemName(parseInt(id)),
+                        quantity
+                    ])),
+                    output: this.game.getItemName(recipe.output),
                     quantity: recipe.quantity,
                     time: recipe.time
                 }))
-            });
+            };
+            
+            // Store by ID (primary key)
+            this.machineTypes.set(machineTypeConfig.id, machineData);
+            // Store by name for backward compatibility
+            this.machineTypesByName.set(machineTypeConfig.name, machineData);
         }
         
         this.nextMachineId = 1;
@@ -32,20 +44,26 @@ class ProductionHall {
             return false;
         }
         
-        const machineInfo = this.machineTypes.get(machineType);
+        // Try to get machine info by ID first, then by name for backward compatibility
+        let machineInfo = this.machineTypes.get(machineType);
+        if (!machineInfo) {
+            machineInfo = this.machineTypesByName.get(machineType);
+        }
+        
         if (!machineInfo) {
             this.game.log(`Unknown machine type: ${machineType}`, 'error');
             return false;
         }
         
         if (!this.game.spendMoney(machineInfo.cost)) {
-            this.game.log(`Not enough money to buy ${machineType}! Cost: $${machineInfo.cost}`, 'error');
+            this.game.log(`Not enough money to buy ${machineInfo.name}! Cost: $${machineInfo.cost}`, 'error');
             return false;
         }
         
         const machine = {
             id: this.nextMachineId++,
-            type: machineType,
+            typeId: machineInfo.id, // Store machine type ID
+            typeName: machineInfo.name, // Store machine type name for display
             status: 'idle', // idle, working, complete
             currentRecipe: null,
             progress: 0,
@@ -56,7 +74,7 @@ class ProductionHall {
         };
         
         this.machines.push(machine);
-        this.game.log(`Purchased ${machineType} for $${machineInfo.cost}`, 'success');
+        this.game.log(`Purchased ${machineInfo.name} for $${machineInfo.cost}`, 'success');
         return true;
     }
     
@@ -68,12 +86,12 @@ class ProductionHall {
         }
         
         const machine = this.machines[machineIndex];
-        const machineInfo = this.machineTypes.get(machine.type);
+        const machineInfo = this.machineTypes.get(machine.typeId);
         const sellPrice = Math.floor(machineInfo.cost * GameConfig.production.machineSellbackRate);
         
         this.machines.splice(machineIndex, 1);
         this.game.earnMoney(sellPrice);
-        this.game.log(`Sold ${machine.type} for $${sellPrice}`, 'success');
+        this.game.log(`Sold ${machine.typeName} for $${sellPrice}`, 'success');
         return true;
     }
     
@@ -88,19 +106,19 @@ class ProductionHall {
         // Handle clearing default recipe
         if (!recipeName || recipeName === '') {
             machine.defaultRecipe = null;
-            this.game.log(`Cleared default recipe for ${machine.type} #${machine.id}`, 'info');
+            this.game.log(`Cleared default recipe for ${machine.typeName} #${machine.id}`, 'info');
             return true;
         }
         
-        const machineInfo = this.machineTypes.get(machine.type);
+        const machineInfo = this.machineTypes.get(machine.typeId);
         const recipe = machineInfo.recipes.find(r => r.name === recipeName);
         if (!recipe) {
-            this.game.log(`Recipe "${recipeName}" not available for ${machine.type}!`, 'error');
+            this.game.log(`Recipe "${recipeName}" not available for ${machine.typeName}!`, 'error');
             return false;
         }
         
         machine.defaultRecipe = recipeName;
-        this.game.log(`Set default recipe for ${machine.type} #${machine.id} to ${recipeName}`, 'success');
+        this.game.log(`Set default recipe for ${machine.typeName} #${machine.id} to ${recipeName}`, 'success');
         return true;
     }
     
@@ -113,7 +131,7 @@ class ProductionHall {
         
         machine.autoStart = !machine.autoStart;
         const status = machine.autoStart ? 'enabled' : 'disabled';
-        this.game.log(`Auto-start ${status} for ${machine.type} #${machine.id}`, 'info');
+        this.game.log(`Auto-start ${status} for ${machine.typeName} #${machine.id}`, 'info');
         return machine.autoStart;
     }
     
@@ -123,7 +141,7 @@ class ProductionHall {
             return false;
         }
         
-        const machineInfo = this.machineTypes.get(machine.type);
+        const machineInfo = this.machineTypes.get(machine.typeId);
         const recipe = machineInfo.recipes.find(r => r.name === machine.defaultRecipe);
         if (!recipe) {
             return false;
@@ -141,7 +159,7 @@ class ProductionHall {
                     machine.progressMax = recipe.time;
                     machine.startTime = this.game.getGameTime();
                     
-                    this.game.log(`Auto-started ${recipe.name} on ${machine.type} #${machine.id}`, 'info');
+                    this.game.log(`Auto-started ${recipe.name} on ${machine.typeName} #${machine.id}`, 'info');
                     return true;
                 }
             }
@@ -162,10 +180,10 @@ class ProductionHall {
             return false;
         }
         
-        const machineInfo = this.machineTypes.get(machine.type);
+        const machineInfo = this.machineTypes.get(machine.typeId);
         const recipe = machineInfo.recipes.find(r => r.name === recipeName);
         if (!recipe) {
-            this.game.log(`Recipe "${recipeName}" not available for ${machine.type}!`, 'error');
+            this.game.log(`Recipe "${recipeName}" not available for ${machine.typeName}!`, 'error');
             return false;
         }
         
@@ -197,7 +215,7 @@ class ProductionHall {
             machine.progressMax = recipe.time;
             machine.startTime = this.game.getGameTime();
             
-            this.game.log(`Started producing ${recipe.name} on ${machine.type}`, 'success');
+            this.game.log(`Started producing ${recipe.name} on ${machine.typeName}`, 'success');
             return true;
         }
         
@@ -278,7 +296,11 @@ class ProductionHall {
     }
     
     getRecipesForMachine(machineType) {
-        const machineInfo = this.machineTypes.get(machineType);
+        // Try to get machine info by ID first, then by name for backward compatibility
+        let machineInfo = this.machineTypes.get(machineType);
+        if (!machineInfo) {
+            machineInfo = this.machineTypesByName.get(machineType);
+        }
         return machineInfo ? [...machineInfo.recipes] : [];
     }
     
@@ -318,7 +340,7 @@ class ProductionHall {
             
             status.details.push({
                 id: machine.id,
-                type: machine.type,
+                type: machine.typeName,
                 status: machine.status,
                 recipe: machine.currentRecipe?.name || 'None',
                 progress: Math.round(progress)
@@ -349,14 +371,41 @@ class ProductionHall {
         this.nextMachineId = data.nextMachineId || 1;
         
         if (data.machines) {
-            this.machines = data.machines.map(machine => ({
-                ...machine,
-                // Convert Object back to Map
-                currentRecipe: machine.currentRecipe ? {
-                    ...machine.currentRecipe,
-                    inputs: new Map(Object.entries(machine.currentRecipe.inputs))
-                } : null
-            }));
+            this.machines = data.machines.map(machine => {
+                const loadedMachine = {
+                    ...machine,
+                    // Convert Object back to Map
+                    currentRecipe: machine.currentRecipe ? {
+                        ...machine.currentRecipe,
+                        inputs: new Map(Object.entries(machine.currentRecipe.inputs))
+                    } : null
+                };
+                
+                // Handle backward compatibility for machines with old 'type' field
+                if (machine.type && !machine.typeId) {
+                    const machineInfo = this.machineTypesByName.get(machine.type);
+                    if (machineInfo) {
+                        loadedMachine.typeId = machineInfo.id;
+                        loadedMachine.typeName = machineInfo.name;
+                    } else {
+                        // Fallback for unknown machine types
+                        console.warn(`Unknown machine type: ${machine.type}, defaulting to Smelter`);
+                        loadedMachine.typeId = 201; // Default to Smelter
+                        loadedMachine.typeName = 'Smelter';
+                    }
+                    // Remove old type field
+                    delete loadedMachine.type;
+                }
+                
+                // Ensure all machines have required fields
+                if (!loadedMachine.typeId || !loadedMachine.typeName) {
+                    console.warn('Machine missing type information, defaulting to Smelter', loadedMachine);
+                    loadedMachine.typeId = loadedMachine.typeId || 201;
+                    loadedMachine.typeName = loadedMachine.typeName || 'Smelter';
+                }
+                
+                return loadedMachine;
+            });
         }
     }
 }

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <script src="js/config.js"></script>
+    <script>
+        console.log('Config loaded:', GameConfig);
+        console.log('Machine types:', GameConfig.production.machineTypes);
+        
+        // Test that all machine types have required properties
+        GameConfig.production.machineTypes.forEach(machine => {
+            console.log(`Machine ID: ${machine.id}, Name: ${machine.name}, Cost: ${machine.cost}`);
+            if (!machine.id || !machine.name || !machine.cost) {
+                console.error('Invalid machine type:', machine);
+            }
+        });
+    </script>
+</body>
+</html>

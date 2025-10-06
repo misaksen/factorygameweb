@@ -385,12 +385,12 @@ class UI {
                         ${status.machines.working > 0 ? 
                             this.game.productionHall.getMachines()
                                 .filter(machine => machine.status === 'working')
-                                .sort((a, b) => a.type.localeCompare(b.type) || a.id - b.id)
+                                .sort((a, b) => (a.typeName || '').localeCompare(b.typeName || '') || a.id - b.id)
                                 .map(machine => {
                                     const progress = Math.min(100, Math.round((machine.progress / machine.progressMax) * 100));
                                     return `
                                         <div style="margin: 0.25rem 0; display: flex; justify-content: space-between; align-items: center; min-height: 30px;">
-                                            <span><strong>${machine.type} #${machine.id}</strong>: ${machine.currentRecipe?.name || 'Unknown'}</span>
+                                            <span><strong>${machine.typeName || 'Unknown'} #${machine.id}</strong>: ${machine.currentRecipe?.name || 'Unknown'}</span>
                                             <span style="color: #495057; font-weight: bold;">${progress}%</span>
                                         </div>
                                     `;
@@ -408,10 +408,10 @@ class UI {
                 
                 <div class="grid grid-2">
                     ${this.game.productionHall.getMachines()
-                        .sort((a, b) => a.type.localeCompare(b.type) || a.id - b.id)
+                        .sort((a, b) => (a.typeName || '').localeCompare(b.typeName || '') || a.id - b.id)
                         .map(machine => `
                         <div class="card" key="${machine.id}">
-                            <h4>${machine.type} #${machine.id}</h4>
+                            <h4>${machine.typeName || 'Unknown'} #${machine.id}</h4>
                             <p>Status: <span class="message-${this.getStatusClass(machine.status)}">${machine.status.toUpperCase()}</span></p>
                             <p>Current Recipe: ${machine.currentRecipe?.name || 'None'}</p>
                             
@@ -435,7 +435,7 @@ class UI {
                                 <div style="margin: 0.5rem 0;">
                                     <label>Default Recipe:</label>
                                     <div style="margin-top: 0.25rem;">
-                                        ${this.game.productionHall.getRecipesForMachine(machine.type)
+                                        ${this.game.productionHall.getRecipesForMachine(machine.typeName)
                                             .sort((a, b) => a.name.localeCompare(b.name))
                                             .map(recipe => `
                                             <button class="btn ${machine.defaultRecipe === recipe.name ? 'btn-success' : 'btn-primary'}" 
@@ -456,7 +456,7 @@ class UI {
                                 <p style="font-size: 0.8rem; margin-top: 0.5rem; ${machine.autoStart && machine.defaultRecipe ? 'color: #28a745;' : machine.autoStart ? 'color: #ffc107;' : 'color: #6c757d;'}">
                                     ${machine.autoStart && machine.defaultRecipe ? 
                                         (() => {
-                                            const recipe = this.game.productionHall.getRecipesForMachine(machine.type)
+                                            const recipe = this.game.productionHall.getRecipesForMachine(machine.typeName)
                                                 .find(r => r.name === machine.defaultRecipe);
                                             if (recipe) {
                                                 const materials = Array.from(recipe.inputs.entries())
@@ -486,7 +486,7 @@ class UI {
                             <div style="margin-top: 1rem;">
                                 <h5>Manual Start:</h5>
                                 <div style="${machine.status !== 'idle' ? 'opacity: 0.5; pointer-events: none;' : ''}">
-                                    ${this.generateRecipeButtons(machine.id, machine.type, machine.status !== 'idle')}
+                                    ${this.generateRecipeButtons(machine.id, machine.typeName, machine.status !== 'idle')}
                                 </div>
                             </div>
                             ` : ''}
@@ -494,7 +494,7 @@ class UI {
                             <div style="margin-top: 1rem;">
                                 <button class="btn btn-danger" onclick="window.factoryGame.ui.sellMachine(${machine.id})"
                                         ${machine.status === 'working' ? 'disabled title="Cannot sell machine while working"' : ''}>
-                                    Sell Machine ($${Math.floor(this.game.productionHall.getMachineTypes().get(machine.type).cost * 0.7)})
+                                    Sell Machine ($${Math.floor(this.game.productionHall.getMachineTypes().get(machine.typeId).cost * 0.7)})
                                 </button>
                             </div>
                         </div>
@@ -524,10 +524,10 @@ class UI {
             
             <div class="grid grid-2">
                 ${Array.from(machineTypes.entries())
-                    .sort(([a], [b]) => a.localeCompare(b))
-                    .map(([type, info]) => `
+                    .sort(([a, infoA], [b, infoB]) => infoA.name.localeCompare(infoB.name))
+                    .map(([typeId, info]) => `
                     <div class="card">
-                        <h3>${type}</h3>
+                        <h3>${info.name}</h3>
                         <p><strong>Cost: $${info.cost}</strong></p>
                         <div style="margin: 1rem 0;">
                             <h4>Available Recipes:</h4>
@@ -566,10 +566,10 @@ class UI {
                             }).join('')}
                         </div>
                         <button class="btn btn-primary" 
-                                onclick="window.factoryGame.ui.buyMachine('${type}')"
+                                onclick="window.factoryGame.ui.buyMachine(${typeId})"
                                 ${status.available === 0 ? 'disabled' : ''}
                                 style="width: 100%; margin-top: 1rem;">
-                            ${status.available === 0 ? 'Production Hall Full' : `Buy ${type}`}
+                            ${status.available === 0 ? 'Production Hall Full' : `Buy ${info.name}`}
                         </button>
                     </div>
                 `).join('')}

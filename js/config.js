@@ -63,96 +63,104 @@ const GameConfig = {
         machineSellbackRate: 0.7, // 70% of original cost
         
         // Machine types and their configurations
-        machineTypes: {
-            'Smelter': {
+        machineTypes: [
+            {
+                id: 201,
+                name: 'Smelter',
                 cost: 200,
                 recipes: [
                     {
                         name: 'Iron Ingot',
                         inputs: {
-                            'Iron Ore': 2,
-                            'Coal': 1
+                            1: 2, // Iron Ore
+                            3: 1  // Coal
                         },
-                        output: 'Iron Ingot',
+                        output: 101, // Iron Ingot
                         quantity: 1,
                         time: 20 // seconds
                     },
                     {
                         name: 'Steel Bar',
                         inputs: {
-                            'Iron Ingot': 2,
-                            'Coal': 2
+                            101: 2, // Iron Ingot
+                            3: 2    // Coal
                         },
-                        output: 'Steel Bar',
+                        output: 104, // Steel Bar
                         quantity: 1,
                         time: 40
                     }
                 ]
             },
-            'Workbench': {
+            {
+                id: 202,
+                name: 'Workbench',
                 cost: 150,
                 recipes: [
                     {
                         name: 'Wooden Plank',
                         inputs: {
-                            'Wood': 1
+                            2: 1 // Wood
                         },
-                        output: 'Wooden Plank',
+                        output: 102, // Wooden Plank
                         quantity: 2,
                         time: 10
                     },
                     {
                         name: 'Concrete Block',
                         inputs: {
-                            'Stone': 3,
-                            'Wood': 1
+                            5: 3, // Stone
+                            2: 1  // Wood
                         },
-                        output: 'Concrete Block',
+                        output: 105, // Concrete Block
                         quantity: 1,
                         time: 30
                     }
                 ]
             },
-            'Wire Mill': {
+            {
+                id: 203,
+                name: 'Wire Mill',
                 cost: 300,
                 recipes: [
                     {
                         name: 'Copper Wire',
                         inputs: {
-                            'Copper Ore': 1
+                            4: 1 // Copper Ore
                         },
-                        output: 'Copper Wire',
+                        output: 103, // Copper Wire
                         quantity: 3,
                         time: 16
                     }
                 ]
             },
-            'Assembly Line': {
+            {
+                id: 204,
+                name: 'Assembly Line',
                 cost: 500,
                 recipes: [
                     {
                         name: 'Electronic Component',
                         inputs: {
-                            'Copper Wire': 2,
-                            'Steel Bar': 1
+                            103: 2, // Copper Wire
+                            104: 1  // Steel Bar
                         },
-                        output: 'Electronic Component',
+                        output: 106, // Electronic Component
                         quantity: 1,
                         time: 50
                     },
                     {
                         name: 'Reinforced Concrete',
                         inputs: {
-                            'Concrete Block': 2,
-                            'Steel Bar': 1
+                            105: 2, // Concrete Block
+                            104: 1  // Steel Bar
                         },
-                        output: 'Reinforced Concrete',
+                        output: 107, // Reinforced Concrete
                         quantity: 1,
                         time: 60
                     }
                 ]
             }
-        }
+        ]
     },
     
     // UI configuration
