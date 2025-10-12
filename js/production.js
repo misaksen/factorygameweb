@@ -16,16 +16,23 @@ class ProductionHall {
                 id: machineTypeConfig.id,
                 name: machineTypeConfig.name,
                 cost: machineTypeConfig.cost,
-                recipes: machineTypeConfig.recipes.map(recipe => ({
-                    name: recipe.name,
-                    inputs: new Map(Object.entries(recipe.inputs).map(([id, quantity]) => [
-                        this.game.getItemName(parseInt(id)),
-                        quantity
-                    ])),
-                    output: this.game.getItemName(recipe.output),
-                    quantity: recipe.quantity,
-                    time: recipe.time
-                }))
+                recipes: machineTypeConfig.recipes.map(recipe => {
+                    const recipeId = typeof recipe.name === 'number' ? recipe.name : parseInt(recipe.name, 10);
+                    const outputId = typeof recipe.output === 'number' ? recipe.output : parseInt(recipe.output, 10);
+
+                    return {
+                        id: recipeId,
+                        name: this.game.getItemName(recipeId),
+                        inputs: new Map(Object.entries(recipe.inputs).map(([id, quantity]) => [
+                            this.game.getItemName(parseInt(id, 10)),
+                            quantity
+                        ])),
+                        outputId,
+                        output: this.game.getItemName(outputId),
+                        quantity: recipe.quantity,
+                        time: recipe.time
+                    };
+                })
             };
             
             // Store by ID (primary key)

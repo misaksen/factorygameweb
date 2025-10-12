@@ -70,7 +70,7 @@ const GameConfig = {
                 cost: 200,
                 recipes: [
                     {
-                        name: 'Iron Ingot',
+                        name: 101, // Iron Ingot
                         inputs: {
                             1: 2, // Iron Ore
                             3: 1  // Coal
@@ -80,7 +80,7 @@ const GameConfig = {
                         time: 20 // seconds
                     },
                     {
-                        name: 'Steel Bar',
+                        name: 104, // Steel Bar
                         inputs: {
                             101: 2, // Iron Ingot
                             3: 2    // Coal
@@ -97,7 +97,7 @@ const GameConfig = {
                 cost: 150,
                 recipes: [
                     {
-                        name: 'Wooden Plank',
+                        name: 102, // Wooden Plank
                         inputs: {
                             2: 1 // Wood
                         },
@@ -106,7 +106,7 @@ const GameConfig = {
                         time: 10
                     },
                     {
-                        name: 'Concrete Block',
+                        name: 105, // Concrete Block
                         inputs: {
                             5: 3, // Stone
                             2: 1  // Wood
@@ -123,7 +123,7 @@ const GameConfig = {
                 cost: 300,
                 recipes: [
                     {
-                        name: 'Copper Wire',
+                        name: 103, // Copper Wire
                         inputs: {
                             4: 1 // Copper Ore
                         },
@@ -139,7 +139,7 @@ const GameConfig = {
                 cost: 500,
                 recipes: [
                     {
-                        name: 'Electronic Component',
+                        name: 106, // Electronic Component
                         inputs: {
                             103: 2, // Copper Wire
                             104: 1  // Steel Bar
@@ -149,7 +149,7 @@ const GameConfig = {
                         time: 50
                     },
                     {
-                        name: 'Reinforced Concrete',
+                        name: 107, // Reinforced Concrete
                         inputs: {
                             105: 2, // Concrete Block
                             104: 1  // Steel Bar
